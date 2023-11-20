@@ -27,6 +27,7 @@ class EllipticCurve:
         self.a = a
         self.b = b
         self.p = p
+        self.allx = self.find_valid_x_coordinates()
 
     def add_points(self, P, Q):
         # print(P, Q)
@@ -99,6 +100,19 @@ class EllipticCurve:
 
     def __str__(self):
         return f'y^2 = x^3 + {self.a}x + {self.b}  mod{self.p}'
+
+    def find_valid_x_coordinates(self):
+        """Find all x-coordinates for which there are valid points on the curve."""
+        valid_x_coords = []
+        for x in range(self.p):
+            y_squared = (x**3 + self.a * x + self.b) % self.p
+            if self.is_quadratic_residue(y_squared):
+                valid_x_coords.append(x)
+        return valid_x_coords
+
+    def is_quadratic_residue(self, a):
+        """Check if 'a' is a quadratic residue modulo 'p'."""
+        return pow(a, (self.p - 1) // 2, self.p) == 1
 
 
 
