@@ -22,8 +22,8 @@ class EllipticPoint:
 
     def __repr__(self):
         if self.infinity:
-            return "Point(infinity)"
-        return f"({self.x}, {self.y})"
+            return "inf inf"
+        return f"{self.x} {self.y}"
 
 
 # Define the elliptic curve y^2 = x^3 + ax + b over F_p
@@ -85,6 +85,8 @@ class EllipticCurve:
     #     return ret
 
     def multiply(self, P, times):
+        if P.infinity:
+            return P
         # Performs scalar multiplication of a point P by an integer times
         N = EllipticPoint(None, None, True)  # Point at infinity
         Q = P
@@ -111,7 +113,7 @@ class EllipticCurve:
             return (g, x - (b // a) * y, y)
 
     def __str__(self):
-        return f'y^2 = x^3 + {self.a}x + {self.b}  mod{self.p}'
+        return f'y^2 = x^3 + {self.a}x + {self.b}  mod {self.p}'
 
     def find_valid_x_coordinates(self):
         """Find all x-coordinates for which there are valid points on the curve."""

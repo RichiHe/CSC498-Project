@@ -2,6 +2,7 @@ import random
 from Elliptic_curve import EllipticPoint
 
 
+Alphabet = "abcdefghijklmnopqrstuvwxyz01234567890 ,."
 def encode_data_to_point(data, curve):
     """Encode data to a point on the curve."""
     # Ensure the data is within the range of valid x-coordinates
@@ -46,10 +47,13 @@ def elgamal_encrypt(curve, generator, public_key, plaintext_numbers):
 def elgamal_decrypt(curve, private_key, ciphertexts):
     plaintext_points = []
     for A, B in ciphertexts:
-        S = curve.multiply(A, private_key)  # Shared secret
-        possible_y = curve.p - S.y % curve.p
-        S_inverse = EllipticPoint(S.x, possible_y)  # Inverse of S
-        M = curve.add_points(B, S_inverse)  # Decrypt to get message point
+        if A.infinity:
+            M = curve.add_points(B, A)
+        else:
+            S = curve.multiply(A, private_key)  # Shared secret
+            possible_y = curve.p - S.y % curve.p
+            S_inverse = EllipticPoint(S.x, possible_y)  # Inverse of S
+            M = curve.add_points(B, S_inverse)  # Decrypt to get message point
         plaintext_points.append(M)
 
     plaintext_numbers = [decode_point_to_data(point, curve) for point in plaintext_points]
