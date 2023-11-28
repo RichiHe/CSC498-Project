@@ -12,12 +12,13 @@ def text_to_point(cipher_text):
         # print(accu)
         if c == ",":
             continue
-        if c == " " and accu != "":
-            if accu != "inf":
-                xy.append(int(accu))
-            else:
-                xy.append(accu)
-            accu = ""
+        if c == " ":
+            if accu != "":
+                if accu != "inf":
+                    xy.append(int(accu))
+                else:
+                    xy.append(accu)
+                accu = ""
         else:
             accu += c
         if len(xy) == 2:

@@ -3,6 +3,8 @@ import math
 
 class EllipticPoint:
     def __init__(self, x, y, infinity=False):
+        if x == "inf":
+            self.infinity = True
         self.x = x
         self.y = y
         self.infinity = infinity # Point at infinity
@@ -15,24 +17,26 @@ class EllipticPoint:
         return self.x == other.x and self.y == other.y
 
     def __str__(self):
-        if self.infinity:
-            return "Point(infinity)"
-        return f"Point({self.x}, {self.y})"
+        return self.__repr__()
 
 
     def __repr__(self):
         if self.infinity:
-            return "inf inf"
-        return f"{self.x} {self.y}"
+            return "(inf, inf)"
+        return f"({self.x}, {self.y})"
 
 
 # Define the elliptic curve y^2 = x^3 + ax + b over F_p
 class EllipticCurve:
+    a:int
+    b:int
+    p:int
+    allpoints: list
     def __init__(self, a, b, p):
         self.a = a
         self.b = b
         self.p = p
-        self.allx = self.find_valid_x_coordinates()
+        self.allpoints = self.find_valid_points()
 
     def add_points(self, P, Q):
         # print(P, Q)
@@ -57,10 +61,13 @@ class EllipticCurve:
         return EllipticPoint(x_r, y_r)
 
     def double_point(self, P):
+        # print(P)
         if P.infinity:
             return P
 
         # Slope of the tangent at point P
+        if P.y == 0:
+            return EllipticPoint(None, None, True)
         m = (3 * P.x**2 + self.a) * self.modinv(2 * P.y, self.p) % self.p
 
         # Calculate the resulting point R
@@ -85,6 +92,7 @@ class EllipticCurve:
     #     return ret
 
     def multiply(self, P, times):
+        # print(P, times)
         if P.infinity:
             return P
         # Performs scalar multiplication of a point P by an integer times
@@ -94,6 +102,7 @@ class EllipticCurve:
             if times % 2 == 1:
                 N = self.add_points(N, Q)
             Q = self.double_point(Q)
+            # print("Q", Q)
             times //= 2
         return N
 
@@ -115,19 +124,42 @@ class EllipticCurve:
     def __str__(self):
         return f'y^2 = x^3 + {self.a}x + {self.b}  mod {self.p}'
 
-    def find_valid_x_coordinates(self):
-        """Find all x-coordinates for which there are valid points on the curve."""
-        valid_x_coords = []
+    def find_valid_points(self):
+        """Find all valid points on the elliptic curve."""
+        valid_points = []
         for x in range(self.p):
             y_squared = (x**3 + self.a * x + self.b) % self.p
+            # if x == 16:
+            #     print("ysq", y_squared)
             if self.is_quadratic_residue(y_squared):
-                valid_x_coords.append(x)
-        return valid_x_coords
+                # Find the y-coordinates that correspond to this x-coordinate
+                y = self.sqrt_mod_p(y_squared)
+                newpoint = EllipticPoint(x, y)
+                valid_points.append(newpoint)
+                if y != 0:  # If y is not zero, add the symmetric point
+
+                    valid_points.append(EllipticPoint(x, self.p - y))
+        return valid_points
 
     def is_quadratic_residue(self, a):
         """Check if 'a' is a quadratic residue modulo 'p'."""
+        if a == 0:
+            return True
         return pow(a, (self.p - 1) // 2, self.p) == 1
 
+    def sqrt_mod_p(self, a):
+        """Find a square root of 'a' modulo 'p'. Assumes 'a' is a quadratic residue."""
+        # This is a simple implementation; in practice, more efficient algorithms are used.
+        for possible_y in range(self.p):
+            if (possible_y**2) % self.p == a:
+                return possible_y
+        return None  # This should never happen if 'a' is a quadratic residue
+
+    def findindex(self, p: EllipticPoint):
+        for i in range(len(self.allpoints)):
+            if self.allpoints[i] == p:
+                return i
+        return None
 
 
 

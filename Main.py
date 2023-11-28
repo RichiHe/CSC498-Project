@@ -20,23 +20,17 @@ def Main():
 
     print("Curve is", curve)
     english = False
-    if len(curve.allx) > 10:
+    if len(curve.allpoints) > 10:
         english = True
 
-    #
-    # R = curve.add_points(P, Q)
-    # R5 = curve.multiply(P, 115)
-    # print(R)
-    # print(R5)
-    # print(multiples)
     print("Encrypt enter 1, Decrypt enter 2, Get generator enter 3")
     operation = input()
     if operation == "3":
-        print("Valid x are", curve.allx, "select a x by index to be the generator")
-        generatorx = int(input())
+        print("Valid x are", curve.allpoints, "select a point by index to be the generator")
+        generatorindex = int(input())
 
 
-        generator = encode_data_to_point(generatorx, curve)
+        generator = curve.allpoints[generatorindex]
         print("enter a private key")
         private = int(input())
         public = curve.multiply(generator, private)
@@ -46,19 +40,26 @@ def Main():
         if english:
             print("Input your message(any English words and numebers):")
         else:
-            print(f"Input your message(numbers from 0 to {len(curve.allx)-1}):")
+            print(f"Input your message(numbers from 0 to {len(curve.allpoints) - 1}):")
         plaintext = input().lower()
         print("Please enter generator and public key, in the form Gen.x, Gen.y, PK.x, PKy")
         gen_pk = input().split(",")
-        gen = EllipticPoint(int(gen_pk[0]), int(gen_pk[1]))
-        PK = EllipticPoint(int(gen_pk[2]), int(gen_pk[3]))
+        if gen_pk[0] == "inf":
+            gen = EllipticPoint(0, 0, True)
+        else:
+            gen = EllipticPoint(int(gen_pk[0]), int(gen_pk[1]))
+
+        if "inf" in gen_pk[2]:
+            PK = EllipticPoint(None, None, True)
+        else:
+            PK = EllipticPoint(int(gen_pk[2]), int(gen_pk[3]))
         cipherpoint = encrypt(curve, gen, PK, plaintext, english)
         a = str(cipherpoint)
         a = a.replace("(", "")
         a = a.replace(")", "")
         a = a.replace("[", "")
         a = a.replace("]", "")
-        ciphertext = a = a.replace(",", "")
+        ciphertext = a.replace(",", "")
         print("Encrypted message = ", ciphertext)
 
         return
@@ -73,24 +74,6 @@ def Main():
             flag = False
         print("Message is", decrypt(curve, private_key, ciphertext, flag))
 
-
-    # plaintext_numbers = [random.randint(0, len(curve.allx) - 1) for _ in range(3)]
-    # print("plaintext number is", plaintext_numbers)
-    # # Encryption
-    # ciphertexts = elgamal_encrypt(curve, P, public_key, plaintext_numbers)
-    # cipher_numbers = [point for point in ciphertexts]
-    # # Encryption
-    # print("ciphertexts:", ciphertexts)
-    #
-    # # Decryption
-    # decrypted_numbers = elgamal_decrypt(curve, private_key, ciphertexts)
-    # print("Decrypted numbers:", decrypted_numbers)
-    #
-    #
-    # for num in range(len(curve.allx)):
-    #     enc = elgamal_encrypt(curve, P, public_key, [num])
-    #     ans = elgamal_decrypt(curve, private_key, enc)
-    #     print(num, "->", ans[0])
 
 if __name__ == "__main__":
    Main()

@@ -2,15 +2,15 @@ import random
 from Elliptic_curve import EllipticPoint
 
 
-Alphabet = "abcdefghijklmnopqrstuvwxyz01234567890 ,."
+Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 .,"
 def encode_data_to_point(data, curve):
     """Encode data to a point on the curve."""
     # Ensure the data is within the range of valid x-coordinates
-    if data < 0 or data >= len(curve.allx):
+    if data < 0 or data >= len(curve.allpoints):
         # print(data, "out of range")
         raise ValueError("Data is out of range for the given curve.")
 
-    x = curve.allx[data]
+    x = curve.allpoints[data]
     # print(x, "encode valid")
     y_squared = (x**3 + curve.a * x + curve.b) % curve.p
 
@@ -23,9 +23,9 @@ def encode_data_to_point(data, curve):
 def decode_point_to_data(point, curve):
     """Decode a point on the curve back to the original data."""
 
-    if point.x in curve.allx:
+    if point.x in curve.allpoints:
         # print(point.x, "decode valid")
-        return curve.allx.index(point.x)
+        return curve.allpoints.index(point.x)
     else:
         # print(point.x, "invalid")
         raise ValueError("Point's x-coordinate is not valid for decoding.")
@@ -33,7 +33,12 @@ def decode_point_to_data(point, curve):
 
 
 def elgamal_encrypt(curve, generator, public_key, plaintext_numbers):
-    plaintext_points = [encode_data_to_point(data, curve) for data in plaintext_numbers]
+    """
+    plaintext_numbers is list of index of curve.allx, encode_data_to_point
+    can generate a E
+
+    """
+    plaintext_points = [curve.allpoints[data] for data in plaintext_numbers]
     ciphertexts = []
     for M in plaintext_points:
         k = random.randint(1, curve.p - 1)  # Choose a random k for each message
@@ -51,11 +56,14 @@ def elgamal_decrypt(curve, private_key, ciphertexts):
             M = curve.add_points(B, A)
         else:
             S = curve.multiply(A, private_key)  # Shared secret
-            possible_y = curve.p - S.y % curve.p
-            S_inverse = EllipticPoint(S.x, possible_y)  # Inverse of S
+            if S.infinity:
+                S_inverse = EllipticPoint(None, None, True)
+            else:
+                possible_y = curve.p - S.y % curve.p
+                S_inverse = EllipticPoint(S.x, possible_y)  # Inverse of S
             M = curve.add_points(B, S_inverse)  # Decrypt to get message point
         plaintext_points.append(M)
 
-    plaintext_numbers = [decode_point_to_data(point, curve) for point in plaintext_points]
+    plaintext_numbers = [curve.findindex(point) for point in plaintext_points]
     return plaintext_numbers
 

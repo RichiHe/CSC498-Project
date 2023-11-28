@@ -15,4 +15,12 @@ def encrypt(curve, generator, public_key, plaintext, flag):
         else:
             datas.append(int(e))
 
-    return elgamal_encrypt(curve, generator, public_key, datas)
+    ret = str(elgamal_encrypt(curve, generator, public_key, datas))
+    print('ret', ret)
+    ret = ret.replace(",", "")
+    ret = ret.replace("(", "")
+    ret = ret.replace(")", "")
+    ret = ret.replace("[", "")
+    ret = ret.replace("]", "")
+
+    return ret
