@@ -41,7 +41,7 @@ def elgamal_encrypt(curve, generator, public_key, plaintext_numbers):
     plaintext_points = [curve.allpoints[data] for data in plaintext_numbers]
     ciphertexts = []
     for M in plaintext_points:
-        k = random.randint(1, curve.p - 1)  # Choose a random k for each message
+        k = random.randint(1, len(curve.allpoints))  # Choose a random k for each message
         # print("random k is", k)
         A = curve.multiply(generator, k)
         B = curve.add_points(M, curve.multiply(public_key, k))
